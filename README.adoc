@@ -1,0 +1,60 @@
+walkmod-rawclasspath-plugin
+===========================
+
+Walkmod plugin to resolve the classpath of a project that needs to be build manually or by script (without building tools such as maven or gradle).  
+
+== Usage 
+
+Specifically, this plugin makes available the classpath of maven project for the code transformations when you run walkmod. In order to access to the project classpath (the java.lang.ClassLoader element) from your code transformation, you just need to add
+the setter operation for the class loader.
+----
+    public class MyVisitor extends VisitorSupport {
+
+    private ClassLoader classLoader;
+
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+	
+    public void visit(MethodCallExpr md, VisitorContext vc){
+        ...
+    }
+----
+
+In order to use this plugin from a project where you would like to run walkmod, you just need to add:
+
+
+1) The plugin declaration
+
+```XML
+<!DOCTYPE walkmod PUBLIC "-//WALKMOD//DTD"  "http://www.walkmod.com/dtd/walkmod-1.1.dtd" >
+<walkmod>
+  <plugins>
+    <plugin groupId="org.walkmod" artifactId="walkmod-rawclasspath-plugin" version="[1.0, )" />
+  </plugins>
+  ...
+</walkmod>
+```
+
+2) The configuration provider specifying your classpath (the project .classes and the dependencies)
+
+```XML
+<!DOCTYPE walkmod PUBLIC "-//WALKMOD//DTD"  "http://www.walkmod.com/dtd/walkmod-1.1.dtd" >
+<walkmod>
+  ...
+  <conf-providers>
+    <conf-provider type="walkmod:commons:rawclasspath">
+       <param name="classpath">bin;lib/guava.jar;lib/log4j.jar</param>
+    </conf-provider>
+  </conf-providers>
+  ...
+</walkmod>
+```
+
+== Contributing
+
+If you want to hack on this, fork it, improve it and send me a pull request.
+
+To get started using it, just clone it and call mvn install. 
+
+
