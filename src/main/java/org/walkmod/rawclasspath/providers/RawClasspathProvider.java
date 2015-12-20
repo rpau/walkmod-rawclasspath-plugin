@@ -41,18 +41,55 @@ public class RawClasspathProvider implements ConfigurationProvider {
 
 			if (classpath != null) {
 				String[] paths = classpath.split(";");
+				String[] bootPath = System.getProperties().get("sun.boot.class.path").toString()
+						.split(Character.toString(File.pathSeparatorChar));
 
-				URL[] urlArray = new URL[paths.length];
-				for (int i = 0; i < paths.length; i++) {
+				URL[] urlArray = new URL[paths.length + bootPath.length];
+				int i = 0;
+				for (String lib : bootPath) {
+
 					try {
-						File file = new File(paths[i]);
+						urlArray[i] = new File(lib).toURI().toURL();
+					} catch (MalformedURLException e) {
+						throw new ConfigurationException("Invalid URL for the boot classpath entry " + lib,
+								e.getCause());
+					}
+
+					i++;
+				}
+
+				for (String path : paths) {
+					try {
+						File file = new File(path);
 						urlArray[i] = file.toURI().toURL();
 					} catch (MalformedURLException e) {
 						throw new ConfigurationException("Invalid path: " + paths[i], e);
 					}
+					i++;
 				}
 
-				URLClassLoader cl = new URLClassLoader(urlArray);
+				URLClassLoader cl = new URLClassLoader(urlArray) {
+					@Override
+					protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+						Class<?> result = null;
+						try {
+							result = findClass(name);
+
+						} catch (Throwable e) {
+
+						}
+						if (result != null) {
+							return result;
+						}
+
+						return super.loadClass(name, resolve);
+					}
+
+					@Override
+					public Class<?> loadClass(String name) throws ClassNotFoundException {
+						return loadClass(name, false);
+					}
+				};
 				configuration.getParameters().put("classLoader", cl);
 			}
 		}
