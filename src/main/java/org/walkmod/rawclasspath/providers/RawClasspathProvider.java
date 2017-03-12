@@ -25,6 +25,8 @@ import org.walkmod.conf.ConfigurationProvider;
 import org.walkmod.conf.entities.Configuration;
 
 public class RawClasspathProvider implements ConfigurationProvider {
+	/** always support ";" for backward compatibility */
+	private static final String REGEX_PATH_SEPARATORS = ';' == File.pathSeparatorChar ? ";" : "[;" + File.pathSeparator + "]";
 
 	private String classpath;
 
@@ -40,7 +42,7 @@ public class RawClasspathProvider implements ConfigurationProvider {
 		if (configuration != null) {
 
 			if (classpath != null) {
-				String[] paths = classpath.split(";");
+				String[] paths = classpath.split(REGEX_PATH_SEPARATORS);
 				String[] bootPath = System.getProperties().get("sun.boot.class.path").toString()
 						.split(Character.toString(File.pathSeparatorChar));
 
